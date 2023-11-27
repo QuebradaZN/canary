@@ -3,7 +3,7 @@ local function targetFunction(creature, target)
 	local min = ((player:getLevel() / 5) + (player:getMagicLevel() * 5.7) + 26)
 	local max = ((player:getLevel() / 5) + (player:getMagicLevel() * 10.43) + 62)
 
-	local bosses = {"leiden", "ravennous hunger", "dorokoll the mystic", "eshtaba the conjurer", "eliz the unyielding", "mezlon the defiler", "malkhar deathbringer", "containment crystal"}
+	local bosses = { "leiden", "ravennous hunger", "dorokoll the mystic", "eshtaba the conjurer", "eliz the unyielding", "mezlon the defiler", "malkhar deathbringer", "containment crystal" }
 	local master = target:getMaster()
 	if target:isMonster() and not master or master and master:isMonster() then
 		if not table.contains(bosses, target:getName():lower()) then
@@ -49,7 +49,6 @@ function spell.onCastSpell(creature, var)
 	return combat:execute(creature, var)
 end
 
-
 spell:name("Mass Healing")
 spell:words("exura gran mas res")
 spell:group("healing")
@@ -59,7 +58,6 @@ spell:cooldown(2 * 1000)
 spell:groupCooldown(1 * 1000)
 spell:level(36)
 spell:mana(150)
-spell:isAggressive(false)
 spell:isPremium(true)
 spell:isAggressive(false)
 spell:needLearn(false)

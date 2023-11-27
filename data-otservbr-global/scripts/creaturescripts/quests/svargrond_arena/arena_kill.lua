@@ -1,11 +1,10 @@
-local svargrondArenaKill = CreatureEvent("SvargrondArenaKill")
-function svargrondArenaKill.onKill(creature, target)
-	local targetMonster = target:getMonster()
-	if not targetMonster then
-		return
+local deathEvent = CreatureEvent("SvargrondArenaBossDeath")
+function deathEvent.onDeath(creature, _corpse, _lastHitKiller, mostDamageKiller)
+	local player = Player(mostDamageKiller)
+	if not player then
+		return true
 	end
 
-	local player = creature:getPlayer()
 	local pit = player:getStorageValue(Storage.SvargrondArena.PitDoor)
 	if pit < 1 or pit > 10 then
 		return
@@ -16,7 +15,7 @@ function svargrondArenaKill.onKill(creature, target)
 		return
 	end
 
-	if not isInArray(ARENA[arena].creatures, targetMonster:getName():lower()) then
+	if not table.contains(ARENA[arena].creatures, creature:getName():lower()) then
 		return
 	end
 
@@ -36,8 +35,23 @@ function svargrondArenaKill.onKill(creature, target)
 		end
 	end
 	player:setStorageValue(Storage.SvargrondArena.PitDoor, pit + 1)
-	player:say('Victory! Head through the new teleporter into the next room.', TALKTYPE_MONSTER_SAY)
+	player:say("Victory! Head through the new teleporter into the next room.", TALKTYPE_MONSTER_SAY)
 	return true
 end
 
-svargrondArenaKill:register()
+deathEvent:register()
+
+local serverstartup = GlobalEvent("SvargrondArenaBossDeathStartup")
+function serverstartup.onStartup()
+	for _, arena in pairs(ARENA) do
+		for _, bossName in pairs(arena.creatures) do
+			local mType = MonsterType(bossName)
+			if not mType then
+				logger.error("[SvargrondArenaBossDeathStartup] boss with name {} is not a valid MonsterType", bossName)
+			else
+				mType:registerEvent("SvargrondArenaBossDeath")
+			end
+		end
+	end
+end
+serverstartup:register()

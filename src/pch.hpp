@@ -7,16 +7,19 @@
  * Website: https://docs.opentibiabr.com/
  */
 
-#ifndef SRC_PCH_HPP_
-#define SRC_PCH_HPP_
+#pragma once
 
 // --------------------
 // Internal Includes
 // --------------------
 
 // Utils
-#include "utils/definitions.h"
+#include "utils/benchmark.hpp"
+#include "utils/definitions.hpp"
 #include "utils/simd.hpp"
+#include "utils/vectorset.hpp"
+#include "utils/arraylist.hpp"
+#include "utils/vectorsort.hpp"
 
 // --------------------
 // STL Includes
@@ -29,11 +32,13 @@
 #include <forward_list>
 #include <list>
 #include <map>
+#include <unordered_set>
 #include <queue>
 #include <random>
 #include <ranges>
 #include <regex>
 #include <set>
+#include <thread>
 #include <vector>
 #include <variant>
 
@@ -50,7 +55,7 @@
 #endif
 
 #ifdef OS_WINDOWS
-	#include "conio.h"
+	#include <conio.h>
 #endif
 
 // --------------------
@@ -71,6 +76,9 @@
 
 // FMT
 #include <fmt/chrono.h>
+#include <fmt/core.h>
+#include <fmt/format.h>
+#include <fmt/args.h>
 
 // GMP
 #include <gmp.h>
@@ -85,7 +93,20 @@
 	#include <lua.hpp>
 #endif
 
-// Magic Enum
+#include "lua/global/shared_object.hpp"
+
+/**
+ * @brief Magic Enum is a C++ library that facilitates easy conversion between enums and strings.
+ * By default, the range of supported enum values is from -128 to 128. We need extends that range.
+ *
+ * @def MAGIC_ENUM_RANGE_MIN
+ * @note Sets the lower limit of the enum value range to -500.
+ *
+ * @def MAGIC_ENUM_RANGE_MAX
+ * @note Sets the upper limit of the enum value range to 500.
+ */
+#define MAGIC_ENUM_RANGE_MIN -500
+#define MAGIC_ENUM_RANGE_MAX 500
 #include <magic_enum.hpp>
 
 // Memory Mapped File
@@ -102,15 +123,15 @@
 
 // Parallel Hash Map
 #include <parallel_hashmap/phmap.h>
+#include <parallel_hashmap/btree.h>
 
 // PugiXML
 #include <pugixml.hpp>
 
-// SPDLog
-#include <spdlog/spdlog.h>
-
 // Zlib
 #include <zlib.h>
+
+#include <boost/di.hpp>
 
 // -------------------------
 // GIT Metadata Includes
@@ -127,6 +148,14 @@
 #include <string>
 #include <iostream>
 
-bool isDevMode();
+/**
+ * Static custom libraries that can be pre-compiled like DI and messaging
+ */
+#include "lib/messaging/message.hpp"
+#include "lib/messaging/command.hpp"
+#include "lib/messaging/event.hpp"
 
-#endif // SRC_PCH_HPP_
+#include <eventpp/utilities/scopedremover.h>
+#include <eventpp/eventdispatcher.h>
+
+#include "lua/global/shared_object.hpp"

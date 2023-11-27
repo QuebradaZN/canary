@@ -1,3 +1,17 @@
+local function removeEmpowermentItem(position)
+	for x = -1, 1 do
+		for y = -1, 1 do
+			local tile = Tile(Position(position.x + x, position.y + y, position.z))
+			if tile then
+				local item = tile:getItemById(ITEM_DIVINE_EMPOWERMENT)
+				if item then
+					item:remove()
+				end
+			end
+		end
+	end
+end
+
 local spell = Spell("instant")
 
 function spell.onCastSpell(creature, var)
@@ -5,23 +19,23 @@ function spell.onCastSpell(creature, var)
 		return false
 	end
 
-	local grade = creature:upgradeSpellsWORD("Divine Empowerment")
-	if grade == WHEEL_GRADE_NONE then
+	local grade = creature:revelationStageWOD("Divine Empowerment")
+	if grade == 0 then
 		creature:sendCancelMessage("You cannot cast this spell")
 		creature:getPosition():sendMagicEffect(CONST_ME_POFF)
 		return false
 	end
 
 	local cooldown = 0
-	if grade >= WHEEL_GRADE_MAX then
+	if grade >= 3 then
 		cooldown = 24
-	elseif grade >= WHEEL_GRADE_UPGRADED then
+	elseif grade >= 2 then
 		cooldown = 28
-	elseif grade >= WHEEL_GRADE_REGULAR then
+	elseif grade >= 1 then
 		cooldown = 32
 	end
 	local condition = Condition(CONDITION_SPELLCOOLDOWN, CONDITIONID_DEFAULT, 268)
-	condition:setTicks((cooldown * 1000)/configManager.getFloat(configKeys.RATE_SPELL_COOLDOWN))
+	condition:setTicks((cooldown * 1000) / configManager.getFloat(configKeys.RATE_SPELL_COOLDOWN))
 	creature:addCondition(condition)
 
 	local position = creature:getPosition()
@@ -29,10 +43,12 @@ function spell.onCastSpell(creature, var)
 		for y = -1, 1 do
 			local item = Game.createItem(ITEM_DIVINE_EMPOWERMENT, 1, Position(position.x + x, position.y + y, position.z))
 			if item then
-				item:setDuration(5, 5, 0, false)
+				item:setAttribute(ITEM_ATTRIBUTE_OWNER, creature:getId())
 			end
 		end
 	end
+
+	addEvent(removeEmpowermentItem, 5000, position)
 	creature:onThinkWheelOfDestiny(true)
 	return true
 end

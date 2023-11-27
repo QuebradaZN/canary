@@ -1,8 +1,8 @@
 local positionsWall = {
-	{x = 33098, y = 31979, z = 11},
-	{x = 33098, y = 31978, z = 11},
-	{x = 33098, y = 31977, z = 11},
-	{x = 33098, y = 31976, z = 11}
+	{ x = 33098, y = 31979, z = 11 },
+	{ x = 33098, y = 31978, z = 11 },
+	{ x = 33098, y = 31977, z = 11 },
+	{ x = 33098, y = 31976, z = 11 },
 }
 
 local function recreateCrystals(c)
@@ -25,31 +25,21 @@ local function recreateCrystals(c)
 	end
 end
 
-local parasiteWarzone = CreatureEvent("ParasiteWarzone")
-function parasiteWarzone.onKill(player, target)
-	local targetMonster = target:getMonster()
-	if not targetMonster then
-		return false
-	end
-
-	local targetName = targetMonster:getName():lower()
-	if targetName ~= 'parasite' then
-		return false
-	end
-
-	local master = targetMonster:getMaster()
+local parasiteWarzone = CreatureEvent("ParasiteDeath")
+function parasiteWarzone.onDeath(creature)
+	local master = creature:getMaster()
 	if not master or master:isPlayer() then
 		return false
 	end
 
-	local pos = targetMonster:getPosition()
+	local pos = creature:getPosition()
 	if pos.x ~= 33097 or pos.y > 31979 or pos.y < 31976 or pos.z ~= 11 then
 		return false
 	end
 
-	local config = warzoneConfig.findByName('Gnomevil')
+	local config = warzoneConfig.findByName("Gnomevil")
 	if config.locked then
-		targetMonster:say("It seems that someone has already destroyed the walls in the last 30 minutes.", TALKTYPE_MONSTER_SAY)
+		creature:say("It seems that someone has already destroyed the walls in the last 30 minutes.", TALKTYPE_MONSTER_SAY)
 		return false
 	end
 
@@ -58,7 +48,7 @@ function parasiteWarzone.onKill(player, target)
 			local crystal = Tile(positionsWall[i]):getItemById(config.wall)
 			if crystal then
 				Tile(positionsWall[i]):getItemById(config.wall):remove()
-				Game.createItem(config.wall+1, 1, positionsWall[i])
+				Game.createItem(config.wall + 1, 1, positionsWall[i])
 			end
 		end
 		config.wall = config.wall + 1

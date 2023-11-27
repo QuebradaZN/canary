@@ -1,30 +1,30 @@
 local setting = {
-	centerRoom = {x = 33487, y = 32079, z = 8},
+	centerRoom = { x = 33487, y = 32079, z = 8 },
 	range = 10,
 	playerPositions = {
 		Position(33417, 32102, 10),
 		Position(33418, 32102, 10),
 		Position(33419, 32102, 10),
-		Position(33420, 32102, 10)
+		Position(33420, 32102, 10),
 	},
 	newPositions = {
 		Position(33487, 32088, 8),
 		Position(33487, 32088, 8),
 		Position(33487, 32088, 8),
-		Position(33487, 32088, 8)
+		Position(33487, 32088, 8),
 	},
 	canopicJarPositions = {
 		Position(33486, 32081, 8),
 		Position(33488, 32081, 8),
 		Position(33486, 32083, 8),
-		Position(33488, 32083, 8)
-	}
+		Position(33488, 32083, 8),
+	},
 }
 
 local leverTheRavager = Action()
 function leverTheRavager.onUse(player, item, fromPosition, target, toPosition, isHotkey)
 	if item.itemid == 2772 then
-		if roomIsOccupied(setting.centerRoom, setting.range, setting.range) then
+		if roomIsOccupied(setting.centerRoom, false, setting.range, setting.range) then
 			player:say("Someone is fighting against the boss! You need wait awhile.", TALKTYPE_MONSTER_SAY)
 			return true
 		end
@@ -41,9 +41,8 @@ function leverTheRavager.onUse(player, item, fromPosition, target, toPosition, i
 
 		for i = 1, #setting.canopicJarPositions do
 			Game.createMonster("greater canopic jar", setting.canopicJarPositions[i])
-
 		end
-		Game.createMonster("the ravager", {x = 33487, y = 32108, z = 9})
+		Game.createMonster("the ravager", { x = 33487, y = 32108, z = 9 })
 
 		local players
 		for i = 1, #storePlayers do

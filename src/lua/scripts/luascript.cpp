@@ -9,12 +9,12 @@
 
 #include "pch.hpp"
 
-#include "lua/scripts/luascript.h"
+#include "lua/scripts/luascript.hpp"
 #include "lua/scripts/lua_environment.hpp"
 
 ScriptEnvironment::DBResultMap ScriptEnvironment::tempResults;
 uint32_t ScriptEnvironment::lastResultId = 0;
-std::multimap<ScriptEnvironment*, Item*> ScriptEnvironment::tempItems;
+std::multimap<ScriptEnvironment*, std::shared_ptr<Item>> ScriptEnvironment::tempItems;
 
 ScriptEnvironment LuaFunctionsLoader::scriptEnv[16];
 int32_t LuaFunctionsLoader::scriptEnvIndex = -1;
@@ -28,8 +28,8 @@ LuaScriptInterface::~LuaScriptInterface() {
 }
 
 bool LuaScriptInterface::reInitState() {
-	g_luaEnvironment.clearCombatObjects(this);
-	g_luaEnvironment.clearAreaObjects(this);
+	g_luaEnvironment().clearCombatObjects(this);
+	g_luaEnvironment().clearAreaObjects(this);
 
 	closeState();
 	return initState();
@@ -169,19 +169,29 @@ std::string LuaScriptInterface::getStackTrace(const std::string &error_desc) {
 	lua_getglobal(luaState, "debug");
 	if (!isTable(luaState, -1)) {
 		lua_pop(luaState, 1);
+		g_logger().error("Lua debug table not found.");
 		return error_desc;
 	}
 
 	lua_getfield(luaState, -1, "traceback");
 	if (!isFunction(luaState, -1)) {
 		lua_pop(luaState, 2);
+		g_logger().error("Lua traceback function not found.");
 		return error_desc;
 	}
 
 	lua_replace(luaState, -2);
 	pushString(luaState, error_desc);
-	lua_call(luaState, 1, 1);
-	return popString(luaState);
+	if (lua_pcall(luaState, 1, 1, 0) != LUA_OK) {
+		std::string luaError = lua_tostring(luaState, -1);
+		lua_pop(luaState, 1);
+		g_logger().error("Error running Lua traceback: {}", luaError);
+		return "Lua traceback failed: " + luaError;
+	}
+
+	std::string stackTrace = popString(luaState);
+
+	return stackTrace;
 }
 
 bool LuaScriptInterface::pushFunction(int32_t functionId) {
@@ -196,7 +206,7 @@ bool LuaScriptInterface::pushFunction(int32_t functionId) {
 }
 
 bool LuaScriptInterface::initState() {
-	luaState = g_luaEnvironment.getLuaState();
+	luaState = g_luaEnvironment().getLuaState();
 	if (!luaState) {
 		return false;
 	}
@@ -208,7 +218,11 @@ bool LuaScriptInterface::initState() {
 }
 
 bool LuaScriptInterface::closeState() {
-	if (!g_luaEnvironment.getLuaState() || !luaState) {
+	if (LuaEnvironment::isShuttingDown()) {
+		luaState = nullptr;
+	}
+
+	if (!luaState || !g_luaEnvironment().getLuaState()) {
 		return false;
 	}
 

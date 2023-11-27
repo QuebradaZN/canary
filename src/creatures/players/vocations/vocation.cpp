@@ -9,14 +9,14 @@
 
 #include "pch.hpp"
 
-#include "creatures/players/vocations/vocation.h"
+#include "creatures/players/vocations/vocation.hpp"
 
-#include "utils/pugicast.h"
-#include "utils/tools.h"
+#include "utils/pugicast.hpp"
+#include "utils/tools.hpp"
 
 bool Vocations::loadFromXml() {
 	pugi::xml_document doc;
-	auto folder = g_configManager().getString(CORE_DIRECTORY) + "/XML/vocations.xml";
+	auto folder = g_configManager().getString(CORE_DIRECTORY, __FUNCTION__) + "/XML/vocations.xml";
 	pugi::xml_parse_result result = doc.load_file(folder.c_str());
 	if (!result) {
 		printXMLError(__FUNCTION__, folder, result);
@@ -26,7 +26,7 @@ bool Vocations::loadFromXml() {
 	for (auto vocationNode : doc.child("vocations").children()) {
 		pugi::xml_attribute attr;
 		if (!(attr = vocationNode.attribute("id"))) {
-			SPDLOG_WARN("[{}] - Missing vocation id", __FUNCTION__);
+			g_logger().warn("[{}] - Missing vocation id", __FUNCTION__);
 			continue;
 		}
 
@@ -119,14 +119,14 @@ bool Vocations::loadFromXml() {
 					if (skill_id <= SKILL_LAST) {
 						voc.skillMultipliers[skill_id] = pugi::cast<float>(childNode.attribute("multiplier").value());
 					} else {
-						SPDLOG_WARN("[Vocations::loadFromXml] - "
-									"No valid skill id: {} for vocation: {}",
-									skill_id, voc.id);
+						g_logger().warn("[Vocations::loadFromXml] - "
+										"No valid skill id: {} for vocation: {}",
+										skill_id, voc.id);
 					}
 				} else {
-					SPDLOG_WARN("[Vocations::loadFromXml] - "
-								"Missing skill id for vocation: {}",
-								voc.id);
+					g_logger().warn("[Vocations::loadFromXml] - "
+									"Missing skill id for vocation: {}",
+									voc.id);
 				}
 			} else if (strcasecmp(childNode.name(), "mitigation") == 0) {
 				pugi::xml_attribute factorAttribute = childNode.attribute("multiplier");
@@ -163,6 +163,16 @@ bool Vocations::loadFromXml() {
 				if (armorAttribute) {
 					voc.armorMultiplier = pugi::cast<float>(armorAttribute.value());
 				}
+			} else if (strcasecmp(childNode.name(), "pvp") == 0) {
+				pugi::xml_attribute pvpDamageReceivedMultiplier = childNode.attribute("damageReceivedMultiplier");
+				if (pvpDamageReceivedMultiplier) {
+					voc.pvpDamageReceivedMultiplier = pugi::cast<float>(pvpDamageReceivedMultiplier.value());
+				}
+
+				pugi::xml_attribute pvpDamageDealtMultiplier = childNode.attribute("damageDealtMultiplier");
+				if (pvpDamageDealtMultiplier) {
+					voc.pvpDamageDealtMultiplier = pugi::cast<float>(pvpDamageDealtMultiplier.value());
+				}
 			}
 		}
 	}
@@ -172,9 +182,9 @@ bool Vocations::loadFromXml() {
 Vocation* Vocations::getVocation(uint16_t id) {
 	auto it = vocationsMap.find(id);
 	if (it == vocationsMap.end()) {
-		SPDLOG_WARN("[Vocations::getVocation] - "
-					"Vocation {} not found",
-					id);
+		g_logger().warn("[Vocations::getVocation] - "
+						"Vocation {} not found",
+						id);
 		return nullptr;
 	}
 	return &it->second;
